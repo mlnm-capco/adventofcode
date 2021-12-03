@@ -8,14 +8,12 @@ def get_input(day):
     print(text)
 
 
-def read_input(day: int):
-    with open("day{}.txt".format(day), 'r') as file:
-        values = [int(line.strip()) for line in file.readlines()]
-    return values
+def read_ints(day: int):
+    return [int(v) for v in read_strings(day)]
 
 
 def read_strings(day: int):
-    with open("day{}.txt".format(day), 'r') as file:
+    with open("input/day{}.txt".format(day), 'r') as file:
         values = [line.strip() for line in file.readlines()]
     return values
 
