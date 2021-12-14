@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 urllib3 = "*"
+regex = "*"
 
 [dev-packages]
 
