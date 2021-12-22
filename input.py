@@ -1,14 +1,16 @@
 import urllib3
+import regex as re
 
 from mytypes.manual import Manual
 from mytypes.vent import Vent
 from mytypes.vent import Point
+from mytypes.grid import Grid
 
 
 def download_input(day):
     session_id = '53616c7465645f5fb09ebccfd5223b5c338960e88464b49490214eefaec66ac36c9ce6f3ec42ca81db852ab8effb05c5'
     url: str = "https://adventofcode.com/2021/day/{}/input".format(day)
-    response = urllib3.PoolManager().request("get", url, headers={'Cookie':f'session={session_id}'})
+    response = urllib3.PoolManager().request("get", url, headers={'Cookie': f'session={session_id}'})
     text = response.data
     return str(text, 'utf-8')
 
@@ -18,7 +20,8 @@ def read_ints(day: int):
 
 
 def read_strings(day: int, from_file: bool = False, filename: str = None):
-    return read_strings_from_file(day, filename) if from_file else [line.strip() for line in download_input(day).split('\n')][:-1]
+    return read_strings_from_file(day, filename) if from_file else [line.strip() for line in
+                                                                    download_input(day).split('\n')][:-1]
 
 
 def read_strings_from_file(day: int, filename: str = None):
@@ -74,13 +77,13 @@ def read_digits(day: int = 8):
     return output
 
 
-def read_grid(day: int = 9, from_file: bool = False):
+def read_grid(day: int = 9, from_file: bool = False, filename: str = None) -> Grid:
+    lines = read_strings(day, from_file, filename)
+    return Grid(lines)
+
+
+def parse_grid(lines):
     grid = []
-    lines = read_strings(day, from_file)
-    return parse_grid(grid, lines)
-
-
-def parse_grid(grid, lines):
     for line in lines:
         row = []
         for char in line:
@@ -89,7 +92,7 @@ def parse_grid(grid, lines):
     return grid
 
 
-def read_graph(day:int = 12, from_file: bool = False, filename: str = None) -> dict:
+def read_graph(day: int = 12, from_file: bool = False, filename: str = None) -> dict:
     lines = read_strings(day, from_file, filename)
     graph = dict()
     for line in lines:
@@ -121,5 +124,37 @@ def read_polymer(day: int = 14, from_file: bool = False, filename: str = None):
     return chain, template
 
 
+def read_scanners(day: int = 19, from_file=False, filename=None):
+    from day19 import Scanner, Point3D
+    lines = read_strings(day, from_file, filename)
+    scanner = None
+    scanners = []
+    for line in lines:
+        if len(line.strip()) == 0:
+            continue
+        if line.startswith('---'):
+            match = re.match('--- scanner (.*) ---', line)
+            index = match.group(1)
+            if scanner is not None:
+                scanners.append(scanner)
+            scanner = Scanner(index)
+        else:
+            scanner.add_beacon(*[int(coord.strip()) for coord in line.split(',')])
+    scanners.append(scanner)
+    scanners[0].set_location(Point3D(0, 0, 0))
+    return scanners
+
+
+def read_image_data(day: int = 20, from_file=False, filename=None):
+    lines = read_strings(day, from_file, filename)
+    enhancement = lines[0]
+    input_image = []
+    for line in lines[2:]:
+        input_image.append(line)
+    return enhancement, input_image
+
+
 if __name__ == '__main__':
-    print(read_polymer(from_file=True, filename='day14test1.txt'))
+    image_data = read_image_data()
+    print(image_data[0])
+    print(image_data[1])

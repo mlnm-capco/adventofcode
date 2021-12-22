@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 urllib3 = "*"
 regex = "*"
+numpy = "*"
+matplotlib = "*"
 
 [dev-packages]
 

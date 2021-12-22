@@ -2,7 +2,6 @@ import math
 import input
 from collections import deque
 from mytypes.vent import Point
-import timeit
 
 
 def is_trough(grid, x, y):
