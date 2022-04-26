@@ -3,8 +3,9 @@ import regex as re
 
 from mytypes.manual import Manual
 from mytypes.vent import Vent
-from mytypes.vent import Point
+from mytypes.grid import Point, Cuboid
 from mytypes.grid import Grid
+from mytypes.grid import Point3D
 
 
 def download_input(day):
@@ -154,7 +155,52 @@ def read_image_data(day: int = 20, from_file=False, filename=None):
     return enhancement, input_image
 
 
+def read_cuboids(day: int = 22, from_file=False, filename=None):
+    lines = read_strings(day, from_file, filename)
+    regex = '(on|off) x=(-?[0-9]+)\\.\\.(-?[0-9]+),y=(-?[0-9]+)\\.\\.(-?[0-9]+),z=(-?[0-9]+)\\.\\.(-?[0-9]+)'
+    operations = []
+    for line in lines:
+        match = re.match(regex, line)
+        state = match.group(1) == 'on'
+        cuboid = Cuboid(Point3D(
+                    min(int(match.group(2)), int(match.group(3))),
+                    min(int(match.group(4)), int(match.group(5))),
+                    min(int(match.group(6)), int(match.group(7)))),
+                Point3D(
+                    max(int(match.group(2)), int(match.group(3))),
+                    max(int(match.group(4)), int(match.group(5))),
+                    max(int(match.group(6)), int(match.group(7)))))
+        operations.append((state, cuboid))
+    return operations
+
+
+def read_alu(day: int = 24, from_file=False, filename=None):
+    lines = read_strings(day, from_file, filename)
+    instructions = []
+    current = None
+    for line in lines:
+        if line.startswith('inp'):
+            if current is not None:
+                instructions.append(current)
+            current = []
+            line += ' '
+        current.append(tuple(line.split(' ')))
+    instructions.append(current)
+    return instructions
+
+
+def read_cucumbers(day: int = 25, from_file=False, filename=None):
+    grid = []
+    for line in read_strings(day, from_file, filename):
+        grid.append(['.>v'.index(c) for c in line])
+    return grid
+
+
 if __name__ == '__main__':
-    image_data = read_image_data()
-    print(image_data[0])
-    print(image_data[1])
+    cuboids = read_cuboids()
+    print(cuboids)
+    alu = read_alu()
+    print(alu)
+    print(len(alu))
+    print(read_cucumbers(from_file=True, filename='day25test1.txt'))
+

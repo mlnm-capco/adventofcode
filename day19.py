@@ -1,35 +1,7 @@
 import day19
 import input
 import math
-
-
-class Point3D:
-
-    def __init__(self, x: int, y: int, z: int):
-        self.x, self.y, self.z = x, y, z
-
-    def distance(self, other):
-        return abs(abs(self.x - other.x)
-                   + abs(self.y - other.y)
-                   + abs(self.z - other.z))
-
-    def __hash__(self):
-        return self.x * 31 + self.y * 37 + self.z
-
-    def __eq__(self, other):
-        return self.x == other.x and self.y == other.y and self.z == other.z
-
-    def __add__(self, other):
-        return Point3D(self.x + other.x, self.y + other.y, self.z + other.z)
-
-    def __sub__(self, other):
-        return Point3D(self.x - other.x, self.y - other.y, self.z - other.z)
-
-    def __str__(self):
-        return f'({self.x}, {self.y}, {self.z})'
-
-    def __repr__(self):
-        return self.__str__()
+from mytypes.grid import Point3D
 
 
 class Scanner:
@@ -60,12 +32,12 @@ class Scanner:
     def inc_yaw(self):
         self.yaw = (self.yaw + 1) % 4
         for beacon in self.beacons:
-            beacon.x, beacon.z = beacon.z, -beacon.x
+            beacon.x, beacon.output = beacon.output, -beacon.x
 
     def inc_pitch(self):
         self.pitch = (self.pitch + 1) % 4
         for beacon in self.beacons:
-            beacon.y, beacon.z = -beacon.z, beacon.y
+            beacon.y, beacon.output = -beacon.output, beacon.y
 
     def set_location(self, location: Point3D, relative_to=None):
         absolute_location = location
