@@ -139,14 +139,14 @@ class Cuboid:
         return str(self)
 
 
-def parse_grid(lines: list):
-    return [[int(char) for char in line] for line in lines]
+def parse_grid(lines: list, as_ints:bool = True):
+    return [[int(char) if as_ints else char for char in line] for line in lines]
 
 
 class Grid:
 
-    def __init__(self, lines: list):
-        self.grid = parse_grid(lines)
+    def __init__(self, lines: list, as_ints:bool = True):
+        self.grid = parse_grid(lines, as_ints)
 
     def from_ndarray(self, arr: np.ndarray):
         self.grid = arr.tolist()
