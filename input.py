@@ -18,8 +18,8 @@ def download_input(day, year: int = 2021):
     return str(text, 'utf-8')
 
 
-def read_ints(day: int):
-    return [int(v) for v in read_strings(day)]
+def read_ints(day: int, **kwargs):
+    return [int(v) for v in read_strings(day, **kwargs)]
 
 
 def read_strings(day: int, from_file: bool = False, filename: str = None, year: int = 2021, strip: bool = True):

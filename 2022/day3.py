@@ -10,7 +10,7 @@ def find_common(contents: str):
 
 
 def get_priority(character: str):
-    priority =  ord(character.swapcase()) - 64
+    priority = ord(character.swapcase()) - 64
     priority = priority if priority <= 26 else priority - 6
     return priority
 

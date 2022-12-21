@@ -6,10 +6,10 @@ queue = []
 shortest = 99999999
 
 
-def find_route(visited: list, grid: Grid, node: Point):
+def find_route(visited: list[Point], grid: Grid, node: Point):
     visited.append(node)
     queue.append((node, 0))
-    min_route = 9999999999999
+    min_route = grid.height() * grid.width()
 
     while queue:
         point, count = queue.pop(0)
@@ -31,15 +31,15 @@ if __name__ == '__main__':
     # grid = input.read_grid(12, year=2022, from_file=True, filename='2022/day12test.txt', as_ints=False)
     grid = input.read_grid(12, year=2022, as_ints=False)
 
-    start = next((grid[j].index('S'), j) for j in range(0, len(grid)) if 'S' in grid[j] and grid[j].index('S') > -1)
-    end = next((grid[j].index('E'), j) for j in range(0, len(grid)) if 'E' in grid[j] and grid[j].index('E') > -1)
-    start_point = Point(start[0], start[1])
+    start_point = grid.find('S')
+    end = grid.find('E')
     print(start_point)
 
-    grid[start[1]][start[0]] = 'a'
-    grid[end[1]][end[0]] = '{'
+    grid[start_point.y][start_point.x] = 'a'
+    grid[end.y][end.x] = '{'
     print(grid)
 
+    # pt 1
     # min_route = find_route(visited, grid, start_point)
 
     a_starts = [(grid[j].index('a'), j) for j in range(0, len(grid)) if 'a' in grid[j] and grid[j].index('a') > -1]
