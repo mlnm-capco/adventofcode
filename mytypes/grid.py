@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy import ndarray
 
 
 class Point:
@@ -147,6 +148,11 @@ def parse_grid(lines: list, as_ints: bool = True):
     return [[int(char) if as_ints else char for char in line] for line in lines]
 
 
+def get_neighbours(arr: ndarray, x, y) -> list[Point]:
+    neighbours = {(x + 1, y), (x, y + 1), (x - 1, y), (x, y - 1)}
+    return [Point(p[0], p[1]) for p in neighbours if 0 <= p[0] < arr.shape[1] and 0 <= p[1] < arr.shape[0]]
+
+
 class Grid:
 
     def __init__(self, lines: list, as_ints:bool = True):
@@ -160,7 +166,7 @@ class Grid:
         neighbours = {(x + 1, y), (x, y + 1)}
         return [Point(p[0], p[1]) for p in neighbours if 0 <= p[0] < self.width() and 0 <= p[1] < self.height()]
 
-    def get_all_neighbours(self, x, y):
+    def get_all_neighbours(self, x, y) -> list[Point]:
         neighbours = {(x + 1, y), (x, y + 1), (x - 1, y), (x, y - 1)}
         return [Point(p[0], p[1]) for p in neighbours if 0 <= p[0] < self.width() and 0 <= p[1] < self.height()]
 
@@ -211,7 +217,7 @@ class Grid:
         return len(self.grid)
 
     def __str__(self):
-        return '\n'.join([', '.join(map(str, row)) for row in self.grid])
+        return '\n'.join([''.join(map(str, row)) for row in self.grid])
 
 
 if __name__ == '__main__':

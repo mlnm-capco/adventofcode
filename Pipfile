@@ -8,6 +8,7 @@ urllib3 = "*"
 regex = "*"
 numpy = "*"
 matplotlib = "*"
+grid = "*"
 
 [dev-packages]
 

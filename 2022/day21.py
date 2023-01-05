@@ -24,21 +24,40 @@ class Monkey:
         self.human = human
 
     def resolve_operands(self, monkeys: dict):
-        if self.number is None or (self.operand1 is None and self.operand2 is None):
+        if (self.number is None and self.name != 'root') or self.operand1 is None or self.operand2 is None:
             return
-        match self.operator:
-            case: '=':
+        op1 = monkeys[self.operand1].number
+        op2 = monkeys[self.operand2].number
+        if op1 is None and op2 is None:
+            return
+        # match self.operator:
+        #     case: '=':
 
         if self.operator == '=':
-            if self.operand1 is None:
-                self.operand1 = self.operand2
+            if op1 is None:
+                monkeys[self.operand1].number = op2
             else:
-                self.operand2 = self.operand1
-        if self.operator == '*':
-            if self.operand1 is None:
-                operand1 = self.number / self.operand2
+                monkeys[self.operand2].number = op1
+        elif self.operator == '*':
+            if op1 is None:
+                monkeys[self.operand1].number = self.number / op2
             else:
-                operand2 = self.number / self.operand1
+                monkeys[self.operand2].number = self.number / op1
+        elif self.operator == '/':
+            if op1 is None:
+                monkeys[self.operand1].number = self.number * op2
+            else:
+                monkeys[self.operand2].number = op1 / self.number
+        elif self.operator == '+':
+            if op1 is None:
+                monkeys[self.operand1].number = self.number - op2
+            else:
+                monkeys[self.operand2].number = self.number - op1
+        elif self.operator == '-':
+            if op1 is None:
+                monkeys[self.operand1].number = self.number + op2
+            else:
+                monkeys[self.operand2].number = op1 - self.number
 
     def __str__(self):
         msg = f'{self.name}: {self.number}'
@@ -83,16 +102,26 @@ def get_monkey_value(monkeys: dict[str: Monkey], monkey: Monkey):
 
 def part2(monkeys: dict[str: Monkey]):
     monkeys['root'].operator = '='
+    # monkeys['root'].number = True
     monkeys['humn'] = Monkey('humn', human=True)
 
     queue = [monkeys['root']]
     while queue:
         m = queue.pop(0)
-        value = get_monkey_value(m)
-        if value is None:
-            queue.append(monkeys[m.operand1])
-            queue.append(monkeys[m.operand2])
-            queue.append(m)
+        value = get_monkey_value(monkeys, m)
+
+        print(m)
+        if m.human and value is not None:
+            return value
+
+        monkey1 = monkeys[m.operand1]
+        monkey2 = monkeys[m.operand2]
+
+        if monkey1.number is None:
+            queue.append(monkey1)
+        if monkey2.number is None:
+            queue.append(monkey2)
+        m.resolve_operands(monkeys)
 
 
 if __name__ == '__main__':
@@ -101,5 +130,7 @@ if __name__ == '__main__':
     print(source)
     print(len(source))
     monkeys = parse_input(source)
-    result = part1(monkeys)
+
+    # result = part1(monkeys)
+    result = part2(monkeys)
     print(result)

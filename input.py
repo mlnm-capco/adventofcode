@@ -85,7 +85,6 @@ def read_grid(day: int = 9, year=2021, from_file: bool = False, filename: str = 
     return Grid(lines, as_ints=as_ints)
 
 
-
 def parse_grid(lines):
     grid = []
     for line in lines:

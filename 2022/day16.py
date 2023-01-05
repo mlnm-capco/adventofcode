@@ -7,7 +7,7 @@ import re
 queue = []
 best = 0
 distances = dict()
-
+cache = dict()
 
 class Valve:
 
@@ -84,36 +84,97 @@ def part_1(valves: dict[str: Valve], start: Valve, minutes: int = 30):
     return highest_pressure
 
 
+def theoretical_max(unvisited: set[str], valves: dict[str: Valve], current_pressure, remaining1, remaining2):
+    biggest = sorted(unvisited, key=lambda s: valves[s].flow, reverse=True)
+    count = min(len(biggest), remaining1 + remaining2)
+    return current_pressure + sum([(count - i) * valves[biggest[i]].flow for i in range(count)])
+
+
+def dfs(valves: dict[str: Valve], current: str, ele_current: str, remaining: int, ele_remaining: int, pressure, unvisited: set[str]):
+    if len(unvisited) == 0 or (remaining < 2 and ele_remaining < 2):
+        return pressure
+
+    global best
+
+    global cache
+    key = f'{sorted({current, ele_current})}-{max(remaining, ele_remaining)}-{sorted(unvisited)}'
+    if key in cache and cache[key] > pressure:
+        return 0
+    cache[key] = pressure
+
+    if best > theoretical_max(unvisited, valves, pressure, remaining, ele_remaining):
+        return 0
+
+    candidates = {v for v in unvisited if distance(v, current, valves) < remaining}
+    if len(candidates) == 0:
+        candidates = {current}
+    ele_candidates = {v for v in unvisited if distance(v, ele_current, valves) < ele_remaining}
+    if len(ele_candidates) == 0:
+        ele_candidates = {ele_current}
+
+    for v in candidates:
+        dist_ = distance(v, current, valves)
+        new_remaining = remaining - dist_ - 1
+        for ev in ele_candidates:
+            if v == ev:
+                continue
+
+            ele_dist_ = distance(ev, ele_current, valves)
+            ele_new_remaining = ele_remaining - ele_dist_ - 1
+            new_pressure = pressure
+            if v != current:
+                new_pressure += (new_remaining * valves[v].flow)
+            if ev != ele_current:
+                new_pressure += ele_new_remaining * valves[ev].flow
+            best = max(best, dfs(valves, v, ev, new_remaining, ele_new_remaining, new_pressure, unvisited - {v, ev}))
+
+    return best
+
+
 def part_2(valves: dict[str: Valve], start: str, minutes: int = 26):
-    queue.append((start, start, minutes, minutes, 0, [valve for valve in valves if valves[valve].flow > 0]))
+    queue.append((start, start, minutes, minutes, 0, {valve for valve in valves if valves[valve].flow > 0}))
     max_pressure = 0
     count = 0
+    cache = {}
     while queue:
-        current_valve, ele_valve, minutes_, ele_minutes, pressure, unvisited = queue.pop(0)
+        current_valve, ele_valve, remaining, ele_remaining, pressure, unvisited = queue.pop(0)
+
+        key = f'{max(remaining, ele_remaining)}-{sorted(unvisited)}'
+        if key in cache and cache[key] > pressure:
+            continue
+        cache[key] = pressure
+
+        if max_pressure > theoretical_max(unvisited, valves, pressure, remaining, ele_remaining):
+            continue
+
         max_pressure = max(max_pressure, pressure)
         # print(f'Minutes left: {minutes_}-{ele_minutes}: Current valve={current_valve}-{ele_valve} pressure={pressure}, highest={max_pressure} unvisited={unvisited}')
-        if len(unvisited) == 0 or (minutes_ < 1 and ele_minutes < 1):
+        if len(unvisited) == 0 or (remaining < 2 and ele_remaining < 2):
             count += 1
             print(f'Pressure: {pressure}, new highest: {max_pressure}, count: {count}, queue: {len(queue)}')
             continue
-        for target in unvisited:
+
+        candidates = {v for v in unvisited if distance(v, current_valve, valves) < remaining}
+        if len(candidates) == 0:
+            candidates = {current_valve}
+        ele_candidates = {v for v in unvisited if distance(v, ele_valve, valves) < ele_remaining}
+        if len(ele_candidates) == 0:
+            ele_candidates = {ele_valve}
+
+        for target in candidates:
             dist_ = distance(target, current_valve, valves)
-            remaining = minutes_ - dist_ - 1
-            if remaining < 0:
-                continue
-            for ele_target in unvisited:
+            new_remaining = remaining - dist_ - 1
+
+            for ele_target in ele_candidates:
                 if ele_target == target:
                     continue
                 ele_dist_ = distance(ele_target, ele_valve, valves)
-                ele_remaining = ele_minutes - ele_dist_ - 1
-                if ele_remaining < 0:
-                    continue
-                remaining = max(0, remaining)
-                ele_remaining = max(0, ele_remaining)
-                queue.append((target if remaining >= 0 else current_valve, ele_target if ele_remaining >= 0 else ele_valve,
-                              remaining, ele_remaining,
-                              pressure + (remaining * valves[target].flow) + (ele_remaining * valves[ele_target].flow),
-                              list(set(unvisited) - {target, ele_target})))
+                new_ele_remaining = ele_remaining - ele_dist_ - 1
+
+                queue.append((target, ele_target,
+                              new_remaining, new_ele_remaining,
+                              pressure + (new_remaining * valves[target].flow) + (new_ele_remaining * valves[ele_target].flow),
+                              unvisited - {target, ele_target}))
 
     return max_pressure
 
@@ -125,4 +186,6 @@ if __name__ == '__main__':
     valves = parse_input(source)
     # print(part_1(valves, 'AA'))
     print(part_2(valves, 'AA'))
+    print(dfs(valves, 'AA', 'AA', 26, 26, 0, {valve for valve in valves if valves[valve].flow > 0}))
     # print(*distances.items(), sep='\n')
+    # 2582
