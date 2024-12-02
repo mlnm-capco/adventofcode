@@ -66,7 +66,7 @@ def print_grid(grid):
 
 
 if __name__ == '__main__':
-    grid = input.read_grid(11, from_file=False)
+    grid = input.read_grid(11, year=2021, from_file=False)
     print_grid(grid)
     # print(get_neighbours(grid, 9, 9))
     #print(steps(grid, 100))  # s/b 1656

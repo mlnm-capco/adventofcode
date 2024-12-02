@@ -6,6 +6,6 @@ def count_increase(values, window_size):
 
 
 if __name__ == '__main__':
-    values = input.read_ints(1)
+    values = input.read_ints(1, year=2021)
     print(f'Part 1 = {count_increase(values, 1)}')
     print(f'Part 2 = {count_increase(values, 3)}')
