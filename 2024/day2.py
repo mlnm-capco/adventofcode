@@ -1,5 +1,4 @@
 import input
-import re
 
 
 def is_safe(report: list):

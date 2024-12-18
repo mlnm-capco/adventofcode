@@ -13,14 +13,19 @@ SESSION_ID = '53616c7465645f5f468b92855aebe751a1053a39944b74d7318013322f9f242b8c
 
 
 def download_input(day, year: int = 2024):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    file_path = f"{dir_path}/input/{year}/day{day}.txt"
+
+    if os.path.isfile(file_path):
+        with open(file_path, 'r') as file:
+            return file.read().strip()
+
     session_id = SESSION_ID
     url: str = "https://adventofcode.com/{}/day/{}/input".format(year, day)
     response = urllib3.PoolManager().request("get", url, headers={'Cookie': f'session={session_id}'})
     text = str(response.data, 'utf-8').strip()
 
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-
-    with open(f"{dir_path}/input/{year}/day{day}.txt", "w+") as text_file:
+    with open(file_path, "w+") as text_file:
         print(f"{text}", file=text_file)
 
     return text
@@ -40,13 +45,16 @@ def read_lists(day, separator=None, **kwargs):
 
 def read_strings(day: int, from_file: bool = False, filename: str = None, year: int = 2024, strip: bool = True):
     return read_strings_from_file(day, filename, strip=strip) if from_file else [line.strip() if strip else line for line in
-                                                                    download_input(day, year=year).split('\n')][:-1]
+                                                                    download_input(day, year=year).split('\n')]
 
 
 def read_strings_from_file(day: int, filename: str = None, strip: bool = True):
     if filename is None:
         filename = f"day{day}.txt"
-    with open(f"../input/{filename}", 'r') as file:
+
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+
+    with open(f"{dir_path}/input/{filename}", 'r') as file:
         values = [line.strip() if strip else line for line in file.readlines()]
     return values
 
@@ -106,8 +114,8 @@ def read_digits(day: int = 8):
     return output
 
 
-def read_grid(day: int = 9, year=2021, from_file: bool = False, filename: str = None, as_ints: bool = True) -> Grid:
-    lines = read_strings(day, from_file, filename, year=year)
+def read_grid(day: int = 9, year=2021, from_file: bool = False, filename: str = None, as_ints: bool = True, **kwargs) -> Grid:
+    lines = read_strings(day, from_file, filename, year=year, **kwargs)
     return Grid(lines, as_ints=as_ints)
 
 
