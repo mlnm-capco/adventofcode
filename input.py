@@ -129,7 +129,7 @@ def parse_grid(lines):
     return grid
 
 
-def read_graph(day: int = 12, from_file: bool = False, filename: str = None) -> dict:
+def read_graph(day: int = 12, year: int = 2021, from_file: bool = False, filename: str = None) -> dict:
     lines = read_strings(day, from_file, filename)
     graph = dict()
     for line in lines:
@@ -139,11 +139,11 @@ def read_graph(day: int = 12, from_file: bool = False, filename: str = None) -> 
 
 def add_vertex(graph: dict, vertex: tuple):
     if not vertex[0] in graph:
-        graph[vertex[0]] = []
+        graph[vertex[0]] = set()
     if not vertex[1] in graph:
-        graph[vertex[1]] = []
-    graph[vertex[0]].append(vertex[1])
-    graph[vertex[1]].append(vertex[0])
+        graph[vertex[1]] = set()
+    graph[vertex[0]].add(vertex[1])
+    graph[vertex[1]].add(vertex[0])
 
 
 def read_manual(day: int = 13, from_file: bool = False, filename: str = None):
@@ -230,6 +230,9 @@ def read_cucumbers(day: int = 25, from_file=False, filename=None):
     for line in read_strings(day, from_file, filename, year=2021):
         grid.append(['.>v'.index(c) for c in line])
     return grid
+
+def read_points(day: int, year: int, from_file=False, filename=None) -> list[Point]:
+    return [Point(*line.split(',')) for line in read_strings(day, from_file, filename, year)]
 
 
 if __name__ == '__main__':

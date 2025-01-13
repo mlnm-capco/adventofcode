@@ -273,6 +273,27 @@ class Grid:
         for point in points:
             self[int(point.y)][int(point.x)] = value
 
+    def solve_maze(self):
+        from collections import deque
+        start, end = self.find('S'), self.find('E')
+        stack = deque([end])
+        self[end] = 0
+        visited = {end}
+        while len(stack) > 0:
+            current_point = stack.pop()
+            current_score = self[current_point]
+            if current_point == start:
+                continue
+            neighbours = [n for n in self.get_point_neighbours(current_point) if
+                          n not in visited and self.get(n) != '#']
+            for n in neighbours:
+                if isinstance(self[n], int) and self[n] < current_score + 1:
+                    continue
+                self[n] = current_score + 1
+                stack.append(n)
+            visited.add(current_point)
+        return self
+
     # searches for instances of a word in this grid
     # returns list of tuples (end point, direction)
     def word_search(self, word: str):
@@ -316,14 +337,40 @@ class Grid:
             new_grid = np.concatenate([new_grid, (long_grid - 1 + i) % 9 + 1], axis=0)
         return self.from_ndarray(new_grid)
 
+    def is_solvable_maze(self, start: Point = Point(0, 0), end: Point = None, valid_dest ='.'):
+        from collections import deque
+        if end is None:
+            end = Point(self.width() - 1, self.height() - 1)
+        stack = deque([start])
+        visited = {start}
+        while len(stack) > 0:
+            current_pos = stack.pop()
+            if current_pos == end:
+                return True
+
+            next_moves = [n for n in self.get_point_neighbours(current_pos) if
+                          self.get(n) == valid_dest and n not in stack and n not in visited]
+            for n in next_moves:
+                visited.add(n)
+                stack.append(n)
+        return False
+
     def get(self, location: Point):
         return self.grid[location.y][location.x]
 
     def __getitem__(self, item):
-        return self.grid[item]
+        if isinstance(item, Point):
+            return self.grid[item.y][item.x]
+        else:
+            return self.grid[item]
 
     def __setitem__(self, point: Point, value):
         self.grid[point.y][point.x] = value
+
+    def __iter__(self):
+        for j in range(0, self.height()):
+            for i in range(0, self.width()):
+                yield Point(i,j), self[j][i]
 
     def width(self):
         return 0 if self.grid is None else len(self.grid[0])
@@ -362,7 +409,7 @@ class Grid:
         return len(self.grid)
 
     def __str__(self):
-        return '\n'.join([''.join([e if e != '0' else ' ' for e in map(str, row)]) for row in self.grid])
+        return '\n'.join([''.join([e.ljust(3, ' ') for e in map(str, row)]) for row in self.grid])
 
 
 if __name__ == '__main__':

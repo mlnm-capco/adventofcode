@@ -20,41 +20,31 @@ def part_two(input, points: list[Point], pre_dropped: int):
             return point
     return None
 
-def part_two2(input, width, height):
-    grid, points = parse_input(input, width, height, len(input))
+def part_two2(grid, points, width, height):
     for i in range(len(points) - 1, 0, -1):
         p = points[i]
         grid[p.y][p.x] = '.'
-        if not is_solvable(grid):
+        if not grid.is_solvable_maze():
             continue
         else:
             print(p)
             return p
     return None
 
+def create_grid(width, height):
+    grid = Grid.fill('.', width, height)
+    return grid
 
 def parse_input(input, width, height, blocks: int):
-    grid = Grid.fill('.', width, height)
-    points = []
-    for line in input:
-        x, y = line.split(',')
-        points.append(Point(x, y))
+    grid = create_grid(width, height)
+    points = [Point(*line.split(',')) for line in input]
     grid.populate_points('#', points[0: blocks])
     return grid, points
 
-def is_solvable(grid: Grid, pos: Point = Point(0,0)):
-    stack = deque([(pos)])
-    visited = {pos}
-    while len(stack) > 0:
-        current_pos = stack.pop()
-        if current_pos == Point(grid.width() - 1, grid.height() - 1):
-            return True
-
-        next_moves = [n for n in grid.get_point_neighbours(current_pos) if grid.get(n) == '.' and n not in stack and n not in visited]
-        for n in next_moves:
-            visited.add(n)
-            stack.append(n)
-    return False
+def initialise_grid(obstacles: list[Point], width, height, blocks: int):
+    grid = create_grid(width, height)
+    grid.populate_points('#', obstacles[0: blocks])
+    return grid
 
 def solve_maze(grid: Grid, pos: Point = Point(0,0)):
     stack = deque([(pos)])
@@ -89,8 +79,8 @@ if __name__ == '__main__':
     day = 18
     expected1, expected2 = 22, Point(6,1)
 
-    test_input = input.read_strings(day, year=2024, from_file=True, filename=f'../input/2024/day{day}test.txt')
-    grid, _ = parse_input(test_input, 7, 7, 12)
+    test_input = input.read_points(day, year=2024, from_file=True, filename=f'../input/2024/day{day}test.txt')
+    grid = initialise_grid(test_input, 7, 7, 12)
     print(f'Test input: \n{grid}')
 
     # Test part 1
@@ -100,15 +90,14 @@ if __name__ == '__main__':
         assert test_result == expected1
 
     # Test part 2
-    grid, points = parse_input(test_input, 7, 7, 12)
-    # test_result2 = part_two(grid, points, 12)
-    test_result2 = part_two2(test_input, 7, 7)
+    grid = initialise_grid(test_input, 7, 7, len(test_input))
+    test_result2 = part_two2(grid, test_input, 7, 7)
     print(f'Part 2 test: {test_result2}')
     assert test_result2 == expected2
 
 
-    real_input = input.read_strings(day, year=2024, from_file=False)
-    grid, _ = parse_input(real_input, 71, 71, 1024)
+    real_obstacles = input.read_points(day, year=2024, from_file=False)
+    grid = initialise_grid(real_obstacles, 71, 71, 1024)
     print(f'Real input: \n{grid}')
 
     from timeit import default_timer as timer
@@ -122,12 +111,12 @@ if __name__ == '__main__':
 
     # Real part 2
     pre_dropped = 1024
-    grid, points = parse_input(real_input, 71, 71, pre_dropped)
+    grid = initialise_grid(real_obstacles, 71, 71, len(real_obstacles))
+
     print(f'Part 2 real input: \n{grid}')
 
     start = timer()
-    # result2 = part_two(grid, points, pre_dropped)
-    result22 = part_two2(real_input, 71, 71)
+    result22 = part_two2(grid, real_obstacles, 71, 71)
     print(f'Part 2: {result22}')
     print(f'Time: {timer() - start}')
     assert result22 == Point(27,60)

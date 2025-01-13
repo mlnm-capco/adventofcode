@@ -139,11 +139,10 @@ def part_two2(input):
         computer.a = answer
         computer.compute()
         if computer.output == computer.instructions:
-            # print(f'Answer: {oct(answer)}, computer: {computer}')
             return answer
         if computer.output == computer.instructions[-(len(computer.output)):]:
-            # print(f'Answer: {oct(answer)}, computer: {computer}')
-            answer = answer * 8 # or answer * 0o10 or answer << 3
+            print(f'{oct(answer)}: {computer.output}')
+            answer = answer * 8
         else:
             answer += 1
 

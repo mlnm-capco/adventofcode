@@ -8,6 +8,8 @@ def part_one(input):
 def part_two(input):
     return NotImplemented
 
+def parse_input(input):
+    return input
 
 # part one =
 # part two =
