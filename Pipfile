@@ -9,6 +9,7 @@ regex = "*"
 numpy = "*"
 matplotlib = "*"
 grid = "*"
+sympy = "*"
 
 [dev-packages]
 

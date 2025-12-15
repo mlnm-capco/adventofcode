@@ -9,10 +9,10 @@ from mytypes.grid import Grid
 from mytypes.grid import Point3D
 
 # SESSION_ID = '53616c7465645f5f15f30b143c26686c48bf4ab3aa46ec6f810e146560d7cee82909b260f8866efba45905ac20cb4508743fa9fe1285a794f8be95b23a10bcd7'
-SESSION_ID = '53616c7465645f5f468b92855aebe751a1053a39944b74d7318013322f9f242b8c17d8c444879d9058c062fcff801c384f6aa87c683b8413fc61185222517516'
+SESSION_ID = '53616c7465645f5ffb81f373fd1118fe93c48e795157655f20f885efd6b86cf378de18a0d893b8bf5f2d936208b63c9b3b2673fb888050eb281cb6b5f63b70d3'
 
 
-def download_input(day, year: int = 2024):
+def download_input(day, year: int = 2025):
     dir_path = os.path.dirname(os.path.realpath(__file__))
     file_path = f"{dir_path}/input/{year}/day{day}.txt"
 
@@ -43,18 +43,18 @@ def read_lists(day, separator=None, **kwargs):
     return [line.split(separator) for line in read_strings(day, **kwargs)]
 
 
-def read_strings(day: int, from_file: bool = False, filename: str = None, year: int = 2024, strip: bool = True):
-    return read_strings_from_file(day, filename, strip=strip) if from_file else [line.strip() if strip else line for line in
+def read_strings(day: int, from_file: bool = False, filename: str = None, year: int = 2024, test: bool = False, strip: bool = True):
+    return read_strings_from_file(day, filename, test=test, strip=strip) if from_file else [line.strip() if strip else line for line in
                                                                     download_input(day, year=year).split('\n')]
 
 
-def read_strings_from_file(day: int, filename: str = None, strip: bool = True):
+def read_strings_from_file(day: int, filename: str = None, year: int = 2025, test: bool = False, strip: bool = True):
     if filename is None:
-        filename = f"day{day}.txt"
+        filename = f"day{day}{'test' if test else ''}.txt"
 
     dir_path = os.path.dirname(os.path.realpath(__file__))
 
-    with open(f"{dir_path}/input/{filename}", 'r') as file:
+    with open(f"{dir_path}/input/{year}/{filename}", 'r') as file:
         values = [line.strip() if strip else line for line in file.readlines()]
     return values
 
@@ -89,8 +89,12 @@ def read_lanternfish(day: int = 6):
     return read_csv(day)
 
 
-def read_csv(day):
-    return list(map(int, read_strings(day)[0].split(',')))
+def read_csv(day, **kwargs):
+    return list(map(int, read_strings(day, **kwargs)[0].split(',')))
+
+
+def read_csv_strings(day, **kwargs):
+    return list(read_strings(day, **kwargs)[0].split(','))
 
 
 # Returns a list of lists, one list per column

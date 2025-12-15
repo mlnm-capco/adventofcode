@@ -1,3 +1,4 @@
+import math
 from enum import Enum
 
 import numpy as np
@@ -83,6 +84,11 @@ class Point:
     def __mul__(self, other: int):
         return Point(self.x * other, self.y * other)
 
+    # returns true only if point is strictly inside the rectangle defined by rect_start and rect_end
+    def is_inside_rectangle(self, rect_start: 'Point', rect_end: 'Point'):
+        return (min(rect_start.x, rect_end.x) < self.x < max(rect_start.x, rect_end.x)
+                and min(rect_start.y, rect_end.y) < self.y < max(rect_start.y, rect_end.y))
+
     def manhattan_distance(self, other):
         return abs(self.x - other.x) + abs(self.y - other.y)
 
@@ -107,6 +113,38 @@ class Point:
         return _map.get(self)
 
 
+class Line:
+
+    def __init__(self, start: Point, end: Point):
+        self.start = start
+        self.end = end
+
+    def __str__(self):
+        return f'{self.start} - {self.end}'
+
+    def __repr__(self):
+        return f'({self.__str__()})'
+
+    def is_point_on_line(self, point: Point) -> bool:
+        return min(self.start.x, self.end.x) <= point.x <= max(self.start.x, self.end.x) and \
+                min(self.start.y, self.end.y) <= point.y <= max(self.start.y, self.end.y) and \
+                (self.end.x - self.start.x) * (point.y - self.start.y) == (self.end.y - self.start.y) * (point.x - self.start.x)
+
+    def intersects_rectangle(self, rect_start: Point, rect_end: Point) -> bool:
+        rect_start_x = min(rect_start.x, rect_end.x)
+        rect_end_x = max(rect_start.x, rect_end.x)
+        rect_start_y = min(rect_start.y, rect_end.y)
+        rect_end_y = max(rect_start.y, rect_end.y)
+
+        line_start_x = min(self.start.x, self.end.x)
+        line_end_x = max(self.start.x, self.end.x)
+        line_start_y = min(self.start.y, self.end.y)
+        line_end_y = max(self.start.y, self.end.y)
+
+        return not(line_end_x <= rect_start_x or line_start_x >= rect_end_x or \
+                line_end_y <= rect_start_y or line_start_y >= rect_end_y)
+
+
 class Point3D:
 
     def __init__(self, x: int, y: int, z: int):
@@ -116,6 +154,9 @@ class Point3D:
         return abs(abs(self.x - other.x)
                    + abs(self.y - other.y)
                    + abs(self.z - other.z))
+
+    def euclid_distance(self, other):
+        return math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2 + (self.z - other.z) ** 2)
 
     def __hash__(self):
         return self.x * 31 + self.y * 37 + self.z
@@ -209,6 +250,48 @@ class Cuboid:
         new_start = Point3D(self.start.x, self.start.y, value + 1)
         return Cuboid(self.start, new_end), Cuboid(new_start, self.end)
 
+    def plot(self, points: set[Point3D] = None, connections: dict[Point3D, set[Point3D]] = None):
+        # plot 3D cuboid using matplotlib
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+        r = [self.start.x, self.end.x]
+        X, Y = np.meshgrid(r, r)
+        ax.plot_surface(X, Y, np.array([[self.start.z, self.start.z],
+                                        [self.start.z, self.start.z]]), alpha=0.5, color='b')  # bottom
+        ax.plot_surface(X, Y, np.array([[self.end.z, self.end.z],
+                                        [self.end.z, self.end.z]]), alpha=0.5, color='r')  # top
+        r = [self.start.y, self.end.y]
+        Y, Z = np.meshgrid(r, r)
+        ax.plot_surface(np.array([[self.start.x, self.start.x],
+                                 [self.start.x, self.start.x]]), Y, Z, alpha=0.5, color='g')  # left
+        ax.plot_surface(np.array([[self.end.x, self.end.x],
+                                 [self.end.x, self.end.x]]), Y, Z, alpha=0.5, color='y')  # right
+        r = [self.start.x, self.end.x]
+        X, Z = np.meshgrid(r, r)
+        ax.plot_surface(X, np.array([[self.start.y, self.start.y],
+                                     [self.start.y, self.start.y]]), Z, alpha=0.5, color='c')  # front
+        ax.plot_surface(X, np.array([[self.end.y, self.end.y],
+                                     [self.end.y, self.end.y]]), Z, alpha=0.5, color='m')  # back
+
+        # join the two points with a line
+        # ax.plot([10, 20], [10, 50], [10, 30], color='k', linestyle='-')
+        if points is not None:
+            xs = [p.x for p in points]
+            ys = [p.y for p in points]
+            zs = [p.z for p in points]
+            ax.scatter(xs, ys, zs, color='b', s=10)
+
+        if connections is not None:
+            for p1, dests in connections.items():
+                for p2 in dests:
+                    ax.plot([p1.x, p2.x], [p1.y, p2.y], [p1.z, p2.z], color='k', linestyle='-')
+
+        ax.set_xlabel('X')
+        ax.set_ylabel('Y')
+        ax.set_zlabel('Z')
+        plt.show()
+
+
     def __len__(self):
         return abs(
             (self._end.x - self._start.x + 1) * (self._end.y - self._start.y + 1) * (self._end.z - self._start.z + 1))
@@ -229,7 +312,10 @@ class Cuboid:
 def parse_grid(lines: list, as_ints: bool = True):
     if not isdigit(lines[0][0]):
         as_ints = False
-    return [[int(char) if as_ints else char for char in line] for line in lines]
+    if as_ints:
+        return [[int(char) if as_ints else char for char in line] for line in lines]
+    else:
+        return [list(line) for line in lines]
 
 
 def get_neighbours(arr: ndarray, x, y) -> list[Point]:
@@ -265,6 +351,9 @@ class Grid:
     def get_point_neighbours(self, point: Point) -> list[Point]:
         return self.get_all_neighbours(point.x, point.y)
 
+    def get_point_neighbours_inc_diag(self, point: Point) -> list[Point]:
+        return self.get_all_neighbours_inc_diag(point.x, point.y)
+
     def get_all_neighbours_inc_diag(self, x, y) -> list[Point]:
         neighbours = {(x + 1, y), (x + 1, y + 1), (x, y + 1), (x - 1, y + 1), (x - 1, y), (x - 1, y - 1), (x, y - 1), (x + 1, y - 1)}
         return [Point(p[0], p[1]) for p in neighbours if 0 <= p[0] < self.width() and 0 <= p[1] < self.height()]
@@ -272,6 +361,14 @@ class Grid:
     def populate_points(self, value, points):
         for point in points:
             self[int(point.y)][int(point.x)] = value
+
+    def populate_line(self, value, line: Line, inclusive: bool = True):
+        if line.start.x == line.end.x:
+            for y in range(min(line.start.y, line.end.y) + (0 if inclusive else 1), max(line.start.y, line.end.y) + (1 if inclusive else 0)):
+                self[y][line.start.x] = value
+        elif line.start.y == line.end.y:
+            for x in range(min(line.start.x, line.end.x) + (0 if inclusive else 1), max(line.start.x, line.end.x) + (1 if inclusive else 0)):
+                self[line.start.y][x] = value
 
     def solve_maze(self):
         from collections import deque
@@ -411,19 +508,11 @@ class Grid:
     def __str__(self):
         return '\n'.join([''.join([e.ljust(3, ' ') for e in map(str, row)]) for row in self.grid])
 
+    def area(self):
+        return self.width() * self.height()
 
-if __name__ == '__main__':
-    # c1 = Cuboid(Point3D(9, 9, 9), Point3D(11, 11, 11))
-    # overlap = Cuboid(Point3D(10, 10, 10), Point3D(11, 11, 11))
-    # print(c1.split(overlap))
-    #
-    # c1 = Cuboid(Point3D(11, 11, 11), Point3D(13, 13, 13))
-    # overlap = Cuboid(Point3D(11, 11, 11), Point3D(12, 12, 12))
-    # print(c1.split(overlap))
 
-    # grid = Grid([['.', '#'], ['o', '.']], as_ints=False)
-    # grid.plot()
-
+def test_rotation():
     print(f'R -> {Direction.R.rotate()}')
     print(f'D -> {Direction.D.rotate()}')
     print(f'L -> {Direction.L.rotate()}')
@@ -454,3 +543,34 @@ if __name__ == '__main__':
     print(Direction.D - Direction.U)
     print(Direction.L - Direction.R)
     print(Direction.R - Direction.L)
+
+
+if __name__ == '__main__':
+    # c1 = Cuboid(Point3D(9, 9, 9), Point3D(11, 11, 11))
+    # overlap = Cuboid(Point3D(10, 10, 10), Point3D(11, 11, 11))
+    # print(c1.split(overlap))
+    #
+    # c1 = Cuboid(Point3D(11, 11, 11), Point3D(13, 13, 13))
+    # overlap = Cuboid(Point3D(11, 11, 11), Point3D(12, 12, 12))
+    # print(c1.split(overlap))
+
+    # grid = Grid([['.', '#'], ['o', '.']], as_ints=False)
+    # grid.plot()
+
+    # test_rotation()
+
+    # c1 = Cuboid(Point3D(0, 0, 0), Point3D(1000, 1000, 1000))
+    # points = {Point3D(10, 10, 10), Point3D(500, 600, 200), Point3D(900, 900, 900), Point3D(250, 90, 800)}
+    # connections = {Point3D(10, 10, 10): Point3D(500, 600, 200),
+    #                Point3D(500, 600, 200): Point3D(900, 900, 900),
+    #                Point3D(900, 900, 900): Point3D(250, 90, 800)}
+    # c1.plot(points, connections)
+
+    line = Line(Point(1,1), Point(7,1))
+    print(line.is_point_on_line(Point(1,1)))
+    print(line.is_point_on_line(Point(7,1)))
+    print(line.is_point_on_line(Point(2,1)))
+    print(line.is_point_on_line(Point(5,1)))
+    print(line.is_point_on_line(Point(0,1)))
+    print(line.is_point_on_line(Point(8,1)))
+    print(line.is_point_on_line(Point(5,2)))
